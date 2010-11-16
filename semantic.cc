@@ -208,6 +208,10 @@ void TypeCheck(AST *a,string info)
       a->ref=1;
     }
   } 
+	else if(a->kind=="true" || a->kind=="false") {
+		a->tp=create_type("bool",0,0);
+	}
+	//Struct
   else if (a->kind=="struct") {
     construct_struct(a);
   }
@@ -263,6 +267,65 @@ void TypeCheck(AST *a,string info)
       }
     }
   } 
+	// Not Unari
+	else if (a->kind=="not" && child(a,1)==0)
+	{
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool")
+		{
+			errorincompatibleoperator(a->line,a->kind);
+		}
+		a->tp=create_type("bool",0,0);
+	}
+	
+	// Menys unari
+	else if (a->kind=="-" && child(a,1)==0)
+	{
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="int")
+		{
+			errorincompatibleoperator(a->line,a->kind);
+		}
+		a->tp=create_type("int",0,0);
+	}
+
+	// Comparadors aritmètics
+  else if (a->kind=="<" || a->kind==">") 
+	{
+    TypeCheck(child(a,0));
+    TypeCheck(child(a,1));
+    if ((child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="int") ||	(child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")) 
+		{
+      errorincompatibleoperator(a->line,a->kind);
+    }
+    a->tp=create_type("bool",0,0);
+  }
+ 
+	// Comparadors lògics
+  else if (a->kind=="or" || a->kind=="and") 
+	{
+    TypeCheck(child(a,0));
+    TypeCheck(child(a,1));
+    if ((child(a,0)->tp->kind!="error" && child(a,0)->tp->kind!="bool") ||	(child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="bool")) 
+		{
+      errorincompatibleoperator(a->line,a->kind);
+    }
+    a->tp=create_type("bool",0,0);
+  }
+	
+	// Comparador igualtat
+	else if (a->kind=="=")
+	{
+		TypeCheck(child(a,0));
+		TypeCheck(child(a,1));
+		if (child(a,0)->tp->kind!="error" && !equivalent_types(child(a,0)->tp,child(a,1)->tp) 
+			|| not isbasickind(child(a,0)->tp->kind) || not isbasickind(child(a,0)->tp->kind))
+		{
+			errorincompatibleoperator(a->line,a->kind);
+		}
+		a->tp=create_type("bool",0,0);
+	}
+	
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
