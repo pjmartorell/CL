@@ -215,6 +215,11 @@ int main(int argc,char *argv[])
 #token STRUCT       "STRUCT"
 #token ENDSTRUCT    "ENDSTRUCT"
 #token WRITELN      "WRITELN"
+#token PROCEDURE		"PROCEDURE"
+#token ENDPROCEDURE	"ENDPROCEDURE"
+#token REF					"REF"
+#token VAL					"VAL"
+#token COMA					","
 
 //Ops Comp.
 #token PLUS         "\+"
@@ -265,8 +270,12 @@ dec_var: IDENT^ constr_type;
 
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
-dec_bloc: (PROCEDURE^ ENDPROCEDURE |
+dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instrs ENDPROCEDURE! |
            FUNCTION^ ENDFUNCTION)<</*needs modification*/ >>;
+
+cap_procedure: IDENT^ l_params;
+l_params: OPENPAR! (param (COMA! param)* | ) CLOSEPAR! <<#0=createASTlist(_sibling);>>; 
+param: (REF^ | VAL^) IDENT constr_type;
 
 constr_type: 
 				INT | BOOL 
@@ -278,11 +287,14 @@ field: IDENT^ constr_type;
 l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
-        IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)* ASIG^ expression
+        IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)* (ASIG^ expression | OPENPAR^ params CLOSEPAR!)
       |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
 			| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
-			| WHILE^ expression DO! l_instrs ENDWHILE!;
+			| WHILE^ expression DO! l_instrs ENDWHILE!
+			;
 			
+params: (expression (COMA! expression)* | ) <<#0=createASTlist(_sibling);>>;
+
 expression: comp_exp ((AND^ | OR^) comp_exp)*;
 comp_exp: plus_exp ((GTHAN^ | LTHAN^ | EQUAL^) plus_exp)*;
 plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
@@ -291,7 +303,7 @@ term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
 
 expsimple:
 			(NOT^ | MINUS^) expsimple
-      | IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*
+      | IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU! | OPENPAR^ params CLOSEPAR! )*
       | INTCONST
 			| CERT
 			| FALS 
