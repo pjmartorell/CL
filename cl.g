@@ -208,10 +208,15 @@ int main(int argc,char *argv[])
 #token ENDVARS      "ENDVARS"
 #token INT          "INT"
 #token BOOL					"BOOL"
+#token ARRAY				"ARRAY"
+#token OPENCLAU			"\["
+#token CLOSECLAU		"\]"
+#token OF						"OF"
 #token STRUCT       "STRUCT"
 #token ENDSTRUCT    "ENDSTRUCT"
 #token WRITELN      "WRITELN"
 
+//Ops Comp.
 #token PLUS         "\+"
 #token MINUS				"\-"
 #token TIMES				"\*"
@@ -229,12 +234,13 @@ int main(int argc,char *argv[])
 #token DO						"DO"
 #token ENDWHILE			"ENDWHILE"
 
-	
+//Ops Booleanes
 #token OR						"OR"
 #token AND					"AND"
 #token CERT					"TRUE"
 #token FALS					"FALSE"
 #token NOT					"NOT"
+
 #token OPENPAR      "\("
 #token CLOSEPAR     "\)"
 #token ASIG         ":="
@@ -262,14 +268,17 @@ l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 dec_bloc: (PROCEDURE^ ENDPROCEDURE |
            FUNCTION^ ENDFUNCTION)<</*needs modification*/ >>;
 
-constr_type: INT | BOOL | STRUCT^ (field)* ENDSTRUCT!;
+constr_type: 
+				INT | BOOL 
+			| STRUCT^ (field)* ENDSTRUCT!
+			| ARRAY^ OPENCLAU! INTCONST CLOSECLAU! OF! constr_type;
 
 field: IDENT^ constr_type;
 
 l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
-        IDENT ( DOT^ IDENT)* ASIG^ expression
+        IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)* ASIG^ expression
       |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
 			| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!;
@@ -282,7 +291,7 @@ term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
 
 expsimple:
 			(NOT^ | MINUS^) expsimple
-      |  IDENT^ (DOT^ IDENT)*
+      | IDENT^ (DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)*
       | INTCONST
 			| CERT
 			| FALS 
