@@ -220,7 +220,16 @@ int main(int argc,char *argv[])
 #token LTHAN				"\<"
 #token EQUAL				"\="
 
+//Salts/Bucles
+#token IF						"IF"
+#token THEN					"THEN"
+#token ELSE					"ELSE"
+#token ENDIF				"ENDIF"
+#token WHILE				"WHILE"
+#token DO						"DO"
+#token ENDWHILE			"ENDWHILE"
 
+	
 #token OR						"OR"
 #token AND					"AND"
 #token CERT					"TRUE"
@@ -261,8 +270,10 @@ l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
         IDENT ( DOT^ IDENT)* ASIG^ expression
-      |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!;
-
+      |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
+			| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
+			| WHILE^ expression DO! l_instrs ENDWHILE!;
+			
 expression: comp_exp ((AND^ | OR^) comp_exp)*;
 comp_exp: plus_exp ((GTHAN^ | LTHAN^ | EQUAL^) plus_exp)*;
 plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
