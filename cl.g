@@ -207,15 +207,25 @@ int main(int argc,char *argv[])
 #token VARS         "VARS"
 #token ENDVARS      "ENDVARS"
 #token INT          "INT"
+#token BOOL					"BOOL"
 #token STRUCT       "STRUCT"
 #token ENDSTRUCT    "ENDSTRUCT"
 #token WRITELN      "WRITELN"
-#token PLUS         "\+"
 
+#token PLUS         "\+"
 #token MINUS				"\-"
 #token TIMES				"\*"
 #token DIV					"\/"
+#token GTHAN				"\>"
+#token LTHAN				"\<"
+#token EQUAL				"\="
 
+
+#token OR						"OR"
+#token AND					"AND"
+#token CERT					"TRUE"
+#token FALS					"FALSE"
+#token NOT					"NOT"
 #token OPENPAR      "\("
 #token CLOSEPAR     "\)"
 #token ASIG         ":="
@@ -243,7 +253,7 @@ l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 dec_bloc: (PROCEDURE^ ENDPROCEDURE |
            FUNCTION^ ENDFUNCTION)<</*needs modification*/ >>;
 
-constr_type: INT | STRUCT^ (field)* ENDSTRUCT!;
+constr_type: INT | BOOL | STRUCT^ (field)* ENDSTRUCT!;
 
 field: IDENT^ constr_type;
 
@@ -253,12 +263,17 @@ instruction:
         IDENT ( DOT^ IDENT)* ASIG^ expression
       |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!;
 
-expression: term_exp ((PLUS^ | MINUS^) term_exp)*;
+expression: comp_exp ((AND^ | OR^) comp_exp)*;
+comp_exp: plus_exp ((GTHAN^ | LTHAN^ | EQUAL^) plus_exp)*;
+plus_exp: term_exp ((PLUS^ | MINUS^) term_exp)*;
 term_exp: expsimple ((TIMES^ | DIV^) expsimple)*;
 
 
 expsimple:
-        IDENT^ (DOT^ IDENT)*
+			(NOT^ | MINUS^) expsimple
+      |  IDENT^ (DOT^ IDENT)*
       | INTCONST
+			| CERT
+			| FALS 
 			| OPENPAR! expression CLOSEPAR!
       ;

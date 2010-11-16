@@ -15,28 +15,37 @@
 #define VARS 4
 #define ENDVARS 5
 #define INT 6
-#define STRUCT 7
-#define ENDSTRUCT 8
-#define WRITELN 9
-#define PLUS 10
-#define MINUS 11
-#define TIMES 12
-#define DIV 13
-#define OPENPAR 14
-#define CLOSEPAR 15
-#define ASIG 16
-#define DOT 17
-#define IDENT 18
-#define INTCONST 19
-#define COMMENT 20
-#define WHITESPACE 21
-#define NEWLINE 22
-#define LEXICALERROR 23
-#define PROCEDURE 24
-#define ENDPROCEDURE 25
-#define FUNCTION 26
-#define ENDFUNCTION 27
-#define STRING 28
+#define BOOL 7
+#define STRUCT 8
+#define ENDSTRUCT 9
+#define WRITELN 10
+#define PLUS 11
+#define MINUS 12
+#define TIMES 13
+#define DIV 14
+#define GTHAN 15
+#define LTHAN 16
+#define EQUAL 17
+#define OR 18
+#define AND 19
+#define CERT 20
+#define FALS 21
+#define NOT 22
+#define OPENPAR 23
+#define CLOSEPAR 24
+#define ASIG 25
+#define DOT 26
+#define IDENT 27
+#define INTCONST 28
+#define COMMENT 29
+#define WHITESPACE 30
+#define NEWLINE 31
+#define LEXICALERROR 32
+#define PROCEDURE 33
+#define ENDPROCEDURE 34
+#define FUNCTION 35
+#define ENDFUNCTION 36
+#define STRING 37
 
 #ifdef __USE_PROTOS
 void program(AST**_root);
@@ -105,6 +114,18 @@ extern void expression();
 #endif
 
 #ifdef __USE_PROTOS
+void comp_exp(AST**_root);
+#else
+extern void comp_exp();
+#endif
+
+#ifdef __USE_PROTOS
+void plus_exp(AST**_root);
+#else
+extern void plus_exp();
+#endif
+
+#ifdef __USE_PROTOS
 void term_exp(AST**_root);
 #else
 extern void term_exp();
@@ -127,4 +148,7 @@ extern SetWordType zzerr6[];
 extern SetWordType setwd2[];
 extern SetWordType zzerr7[];
 extern SetWordType zzerr8[];
+extern SetWordType zzerr9[];
+extern SetWordType zzerr10[];
+extern SetWordType zzerr11[];
 extern SetWordType setwd3[];

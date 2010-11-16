@@ -98,6 +98,11 @@ INT
 		NLA = INT;
 	>>
 
+BOOL
+	<<
+		NLA = BOOL;
+	>>
+
 STRUCT
 	<<
 		NLA = STRUCT;
@@ -131,6 +136,46 @@ WRITELN
 \/
 	<<
 		NLA = DIV;
+	>>
+
+\>
+	<<
+		NLA = GTHAN;
+	>>
+
+\<
+	<<
+		NLA = LTHAN;
+	>>
+
+\=
+	<<
+		NLA = EQUAL;
+	>>
+
+OR
+	<<
+		NLA = OR;
+	>>
+
+AND
+	<<
+		NLA = AND;
+	>>
+
+TRUE
+	<<
+		NLA = CERT;
+	>>
+
+FALSE
+	<<
+		NLA = FALS;
+	>>
+
+NOT
+	<<
+		NLA = NOT;
 	>>
 
 \(
