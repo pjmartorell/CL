@@ -16,6 +16,8 @@ using namespace std;
 #include "myASTnode.hh"
 
 #include "semantic.hh"
+#include "util.hh"
+
 
 // feedback the main program with our error status
 int TypeError = 0;
@@ -246,6 +248,7 @@ void TypeCheck(AST *a,string info)
     }
     a->tp=create_type("int",0,0);
   }
+	//Tipus Basics
   else if (isbasickind(a->kind)) {
     a->tp=create_type(a->kind,0,0);
   }
@@ -339,10 +342,9 @@ void TypeCheck(AST *a,string info)
 		}
 		TypeCheck(child(a,1), "instruction");
 
-		// Cas té ELSE
+		// Cas amb ELSE
 		if (child(a,2) != 0) TypeCheck(child(a,2), "instruction"); 
 	}
-
 	// While	
 	else if (a->kind=="while") {
 		TypeCheck(child(a,0));
@@ -352,6 +354,29 @@ void TypeCheck(AST *a,string info)
 		}
 		TypeCheck(child(a,1), "instruction");
 	}
+	// Array Declaració
+	else if (a->kind=="array") {
+		TypeCheck(child(a,1));
+		a->tp=create_type("array",child(a,1)->tp,0);
+		a->tp->numelemsarray = stringtoint(child(a,0)->text);
+	}
+	
+	// Array crida
+	else if (a->kind=="[") {
+		TypeCheck(child(a,0));
+		TypeCheck(child(a,1));
+		a->ref=child(a,0)->ref;
+		// Comprovem que l'id és un array
+		if ((child(a,0)->tp->kind!="error") && (child(a,0)->tp->kind!="array"))
+			errorincompatibleoperator(a->line,"array[]");
+
+		//Comprovem que la posició és un int	
+		if (child(a,1)->tp->kind!="error" && child(a,1)->tp->kind!="int")
+			errorincompatibleoperator(a->line,"[]");
+			
+		if(child(a,0)->tp->kind=="array") a->tp=child(a,0)->tp->down;
+	}
+	
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
