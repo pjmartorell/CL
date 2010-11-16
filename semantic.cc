@@ -199,6 +199,7 @@ void TypeCheck(AST *a,string info)
       TypeCheck(a1,info);
     }
   } 
+	//Identificador
   else if (a->kind=="ident") {
     if (!symboltable.find(a->text)) {
       errornondeclaredident(a->line, a->text);
@@ -208,6 +209,7 @@ void TypeCheck(AST *a,string info)
       a->ref=1;
     }
   } 
+	//Bool
 	else if(a->kind=="true" || a->kind=="false") {
 		a->tp=create_type("bool",0,0);
 	}
@@ -229,9 +231,11 @@ void TypeCheck(AST *a,string info)
       a->tp=child(a,0)->tp;
     }
   } 
+	//Enter
   else if (a->kind=="intconst") {
     a->tp=create_type("int",0,0);
   } 
+	//Operacions Aritmetiques
   else if (a->kind=="+" || (a->kind=="-" && child(a,1)!=0) || a->kind=="*"
 	   || a->kind=="/") {
     TypeCheck(child(a,0));
@@ -245,6 +249,7 @@ void TypeCheck(AST *a,string info)
   else if (isbasickind(a->kind)) {
     a->tp=create_type(a->kind,0,0);
   }
+	//WriteLN
   else if (a->kind=="writeln") {
     TypeCheck(child(a,0));
     if (child(a,0)->tp->kind!="error" && !isbasickind(child(a,0)->tp->kind)) {
@@ -325,7 +330,28 @@ void TypeCheck(AST *a,string info)
 		}
 		a->tp=create_type("bool",0,0);
 	}
-	
+	// If
+	else if (a->kind=="if") {
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind != "error" && child(a,0)->tp->kind != 	"bool")
+		{
+			errorbooleanrequired(a->line,a->kind);
+		}
+		TypeCheck(child(a,1), "instruction");
+
+		// Cas té ELSE
+		if (child(a,2) != 0) TypeCheck(child(a,2), "instruction"); 
+	}
+
+	// While	
+	else if (a->kind=="while") {
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind != "error" && child(a,0)->tp->kind != "bool")
+		{
+			errorbooleanrequired(a->line,a->kind);
+		}
+		TypeCheck(child(a,1), "instruction");
+	}
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
