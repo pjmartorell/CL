@@ -125,7 +125,7 @@ static void InsertintoST(int line,string kind,string id,ptype tp)
 /// ------------------------------------------------------------
 
 bool isbasickind(string kind) {
-  return kind=="int" || kind=="bool";
+  return kind=="int" || kind=="bool" || kind=="string";
 }
 
 
@@ -223,7 +223,6 @@ void create_header(AST *a)
 		TypeCheck(child(child(a,0),1)); 
 		a->tp->right = child(child(a,0),1)->tp;
 	}
-	
 }
 
 // Afegeix el header a la taula de simbols
@@ -508,16 +507,38 @@ void TypeCheck(AST *a,string info)
 	else if(a->kind=="function")
 	{
 		a->sc=symboltable.push();
-				insert_params(child(child(child(a,0),0),0));
-				insert_vars(child(child(a,1),0));	
-				insert_headers(child(child(a,2),0));
-				TypeCheck(child(a,2));
-				if (debug) symboltable.write(); //Debugging		
-				TypeCheck(child(a,3),"instruction");
-				TypeCheck(child(a,4));
-	      if (!equivalent_types(child(a,4)->tp, a->tp->right))
-	        errorincompatiblereturn(child(a,4)->line);
-				symboltable.pop();
+		insert_params(child(child(child(a,0),0),0));
+		insert_vars(child(child(a,1),0));	
+		insert_headers(child(child(a,2),0));
+		TypeCheck(child(a,2));
+		if (debug) symboltable.write(); //Debugging		
+		TypeCheck(child(a,3),"instruction");
+		TypeCheck(child(a,4));
+	    if (!equivalent_types(child(a,4)->tp, a->tp->right))
+	      errorincompatiblereturn(child(a,4)->line);
+		symboltable.pop();
+	}
+	// Read
+	else if (a->kind=="read")
+	{
+		TypeCheck(child(a,0));
+		if (child(a,0)->tp->kind!="error")
+		{
+			if (child(a,0)->ref==0) errornonreferenceableexpression(a->line,a->kind); // Cal que sigui referenciable
+			else if (!isbasickind(child(a,0)->tp->kind)) errorreadwriterequirebasic(a->line,a->kind); 
+		}
+	}
+	// Write
+	else if (a->kind=="write")
+	{
+    TypeCheck(child(a,0));
+    if (child(a,0)->tp->kind!="error" && !isbasickind(child(a,0)->tp->kind)) {
+      errorreadwriterequirebasic(a->line,a->kind);
+    }		
+	}
+	// String
+	else if (a->kind=="string") {
+		a->tp=create_type("string",0,0);
 	}
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;

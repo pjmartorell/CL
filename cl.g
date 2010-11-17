@@ -55,6 +55,10 @@ void zzcr_attr(Attrib *attr,int type,char *text)
     attr->kind="intconst";
     attr->text=text;
     break;
+	case STRING:
+	    attr->kind="string";
+	    attr->text=text;
+			break;
   default:
     attr->kind=lowercase(text);
     attr->text="";
@@ -215,6 +219,10 @@ int main(int argc,char *argv[])
 #token STRUCT       "STRUCT"
 #token ENDSTRUCT    "ENDSTRUCT"
 #token WRITELN      "WRITELN"
+#token WRITE				"WRITE"
+#token READ					"READ"
+
+//Funcions/Procs
 #token PROCEDURE		"PROCEDURE"
 #token ENDPROCEDURE	"ENDPROCEDURE"
 #token FUNCTION			"FUNCTION"
@@ -223,6 +231,8 @@ int main(int argc,char *argv[])
 #token REF					"REF"
 #token VAL					"VAL"
 #token COMA					","
+
+#token STRING		"\"~[\"]*\""
 
 //Ops Comp.
 #token PLUS         "\+"
@@ -292,9 +302,11 @@ l_instrs: (instruction)* <<#0=createASTlist(_sibling);>>;
 
 instruction:
         IDENT ( DOT^ IDENT | OPENCLAU^ expression CLOSECLAU!)* (ASIG^ expression | OPENPAR^ params CLOSEPAR!)
-      |	WRITELN^ OPENPAR! ( expression | STRING ) CLOSEPAR!
+      |	(WRITE^ | WRITELN^) OPENPAR! ( expression | STRING ) CLOSEPAR!
 			| IF^ expression THEN! l_instrs (ELSE! l_instrs | ) ENDIF!
 			| WHILE^ expression DO! l_instrs ENDWHILE!
+			| READ^ OPENPAR! expression CLOSEPAR!
+			
 			;
 			
 params: (expression (COMA! expression)* | ) <<#0=createASTlist(_sibling);>>;
