@@ -217,6 +217,9 @@ int main(int argc,char *argv[])
 #token WRITELN      "WRITELN"
 #token PROCEDURE		"PROCEDURE"
 #token ENDPROCEDURE	"ENDPROCEDURE"
+#token FUNCTION			"FUNCTION"
+#token ENDFUNCTION	"ENDFUNCTION"
+#token RETURN				"RETURN"
 #token REF					"REF"
 #token VAL					"VAL"
 #token COMA					","
@@ -271,9 +274,10 @@ dec_var: IDENT^ constr_type;
 l_dec_blocs: ( dec_bloc )* <<#0=createASTlist(_sibling);>> ;
 
 dec_bloc: (PROCEDURE^ cap_procedure dec_vars l_dec_blocs l_instrs ENDPROCEDURE! |
-           FUNCTION^ ENDFUNCTION)<</*needs modification*/ >>;
+           FUNCTION^ cap_function dec_vars l_dec_blocs l_instrs RETURN! expression ENDFUNCTION!);
 
 cap_procedure: IDENT^ l_params;
+cap_function: IDENT^ l_params RETURN! constr_type;
 l_params: OPENPAR! (param (COMA! param)* | ) CLOSEPAR! <<#0=createASTlist(_sibling);>>; 
 param: (REF^ | VAL^) IDENT constr_type;
 
