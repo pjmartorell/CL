@@ -165,9 +165,10 @@ codechain GenRight(AST *a,int t)
     else {//...to be done
     }    
   } 
-  else if (a->kind=="intconst") {
-    c="iload "+a->text+" t"+itostring(t);
-  }
+  else if (a->kind=="intconst") c="iload "+a->text+" t"+itostring(t);
+	else if (a->kind=="true") c="iload 1 t"+itostring(t);
+	else if (a->kind=="false") c="iload 0 t"+itostring(t);
+	
   else if (a->kind=="+") {
     c=GenRight(child(a,0),t)||
       GenRight(child(a,1),t+1)||
