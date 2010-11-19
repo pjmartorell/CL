@@ -174,6 +174,22 @@ codechain GenRight(AST *a,int t)
       GenRight(child(a,1),t+1)||
       "addi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);
   }
+	else if (a->kind=="-") {
+		if(!child(a,1)) {
+			c=GenRight(child(a,0),t)
+				|| "mini t"+itostring(t)+" t"+itostring(t);
+		}
+		else {
+			c=GenRight(child(a,0),t)
+			|| GenRight(child(a,1),t+1)
+			|| "subi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);
+		}
+	}
+	else if (a->kind=="/") {
+		 c=GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "divi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);
+	}
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
