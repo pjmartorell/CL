@@ -190,6 +190,27 @@ codechain GenRight(AST *a,int t)
 		|| GenRight(child(a,1),t+1)
 		|| "divi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);
 	}
+	else if (a->kind=="*") {
+		c=GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "muli t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);		
+	}
+	else if (a->kind=="<") {
+		c=GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "lesi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);		
+	}
+	else if (a->kind==">") {
+		c=GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "grti t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);		
+	}
+	else if (a->kind=="=") {
+		c=GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "equi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);		
+	}
+	
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
@@ -235,8 +256,28 @@ codechain CodeGenInstruction(AST *a,string info="")
       c=c||"wrln";
     }
   }
+  else if (a->kind=="while") {
+		int count = newLabelWhile();
+		c = "etiq while_" + itostring(count)
+		|| GenRight(child(a,0),0)
+		|| "fjmp t0 endwhile_" + itostring(count)
+		|| CodeGenInstruction(child(a,1),info)
+		|| "ujmp while_" + itostring(count)
+	|| "etiq endwhile_" + itostring(count);
+	}
+	else if (a->kind=="if") {
+		int count = newLabelIf();
+		c = GenRight(child(a,0),0)
+		|| "fjmp t0 else_" + itostring(count)
+		|| CodeGenInstruction(child(a,1),info)
+		|| "ujmp endif_" + itostring(count)
+		|| "etiq else_" + itostring(count)
+		|| CodeGenInstruction(child(a,2),info)
+		|| "etiq endif_" + itostring(count);
+	}
+	
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
-
+//	cout << a->kind << endl;
   return c;
 }
 
