@@ -216,6 +216,11 @@ codechain GenRight(AST *a,int t)
 		|| GenRight(child(a,1),t+1)
 		|| "equi t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);		
 	}
+	else if (a->kind=="and") {
+		c=GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "land t"+itostring(t)+" t"+itostring(t+1)+" t"+itostring(t);		
+	}
 	
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
@@ -273,13 +278,23 @@ codechain CodeGenInstruction(AST *a,string info="")
 	}
 	else if (a->kind=="if") {
 		int count = newLabelIf();
-		c = GenRight(child(a,0),0)
-		|| "fjmp t0 else_" + itostring(count)
-		|| CodeGenInstruction(child(a,1),info)
-		|| "ujmp endif_" + itostring(count)
-		|| "etiq else_" + itostring(count)
-		|| CodeGenInstruction(child(a,2),info)
-		|| "etiq endif_" + itostring(count);
+		if(!child(a, 2)) {	// If-then
+			c = GenRight(child(a,0),0)
+			|| "fjmp t0 endif_" + itostring(count)
+			|| CodeGenInstruction(child(a,1),info)
+			|| CodeGenInstruction(child(a,2),info)
+			|| "etiq endif_" + itostring(count);
+		}
+		else {	//If-then-Else
+			c = GenRight(child(a,0),0)
+			|| "fjmp t0 else_" + itostring(count)
+			|| CodeGenInstruction(child(a,1),info)
+			|| "ujmp endif_" + itostring(count)
+			|| "etiq else_" + itostring(count)
+			|| CodeGenInstruction(child(a,2),info)
+			|| "etiq endif_" + itostring(count);
+		}
+		
 	}
 	
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
