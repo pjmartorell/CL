@@ -136,6 +136,12 @@ codechain GenLeft(AST *a,int t)
       "addi t"+itostring(t)+" "+
       itostring(child(a,0)->tp->offset[child(a,1)->text])+" t"+itostring(t);
   }
+	else if (a->kind=="["){
+    c="aload _"+child(a,0)->text+" t"+itostring(t)
+		|| GenRight(child(a,1), t+1)
+		|| "muli t" + itostring(t+1) + " " + itostring(a->tp->size) + " t" + itostring(t+1)
+		|| "addi t" + itostring(t) + " t" + itostring(t+1) + " t" + itostring(t);
+	}
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
