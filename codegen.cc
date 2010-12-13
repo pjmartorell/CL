@@ -187,7 +187,7 @@ codechain GenLeft(AST *a,int t)
 
 codechain GenRight(AST *a,int t)
 {
-  codechain c;
+  codechain c, pushpars, killpars;
 
   if (!a) {
     return c;
@@ -259,7 +259,28 @@ codechain GenRight(AST *a,int t)
 		c=GenRight(child(a,0),t)
 		|| "lnot t"+itostring(t)+" t"+itostring(t);		
 	}
-	
+	else if (a->kind=="(") {
+		// Return value type = isbasickind?
+		if (isbasickind(symboltable[child(a,0)->text].tp->right->kind))
+		{
+			pushpars = "pushparam 0";
+			CodeGenRealParams(a, symboltable[child(a,0)->text].tp, pushpars, killpars, t);
+			killpars = killpars || "popparam t" + itostring(t);
+		}
+		else
+		{
+			pushpars = "aload aux_space t" + itostring(t);
+			pushpars = pushpars || "addi t" + itostring(t) + " " + itostring(offsetauxspace) + " t" + itostring(t);
+			pushpars = pushpars || "pushparam t" + itostring(t);
+			offsetauxspace += compute_size(symboltable[child(a,0)->text].tp->right);
+			CodeGenRealParams(a, symboltable[child(a,0)->text].tp, pushpars, killpars, t + 1);
+			killpars = killpars || "killparam";
+		}	
+		
+		c = pushpars;
+		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
+		c = c || killpars;
+	}
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
@@ -298,7 +319,7 @@ codechain CodeGenInstruction(AST *a,string info="")
     if (child(a,0)->kind=="string") {
 			c = "wris " + child(a,0)->text; 
     } 
-    else {//Exp
+    else {	//Expressio
       c=GenRight(child(a,0),0)||"wrii t0";
     }
 
@@ -348,7 +369,7 @@ codechain CodeGenInstruction(AST *a,string info="")
 void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 {
   codesubroutine cs;
-	int isfunc = 0;
+	bool isfunc = (a->kind == "function");
 	
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
   string idtable=symboltable.idtable(child(a,0)->text);
@@ -372,7 +393,6 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 		
 	cs.c = CodeGenInstruction(child(a,3));
 	
-	/*
 	if (isfunc)
 	{
 		// write_type(a->tp->down);
@@ -387,7 +407,7 @@ void CodeGenSubroutine(AST *a,list<codesubroutine> &l)
 			cs.c = cs.c || "load returnvalue t0" || "copy t1 t0 " + itostring(compute_size(child(a, 4)->tp));
 		}
 	}
-	*/
+	
 	cs.c = cs.c || "retu";
 
   if (maxoffsetauxspace > 0) 
