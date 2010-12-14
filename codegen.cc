@@ -172,9 +172,10 @@ codechain GenLeft(AST *a,int t)
       itostring(child(a,0)->tp->offset[child(a,1)->text])+" t"+itostring(t);
   }
 	else if (a->kind=="["){
-    c="aload _"+child(a,0)->text+" t"+itostring(t)
+		//ASTPrintIndent(a, "");
+    c= GenLeft(child(a, 0), t)
 		|| GenRight(child(a,1), t+1)
-		|| "muli t" + itostring(t+1) + " " + itostring(a->tp->size) + " t" + itostring(t+1)
+		|| "muli t" + itostring(t+1) + " " + itostring(child(a, 0)->tp->size / child(a, 0)->tp->numelemsarray) + " t" + itostring(t+1)
 		|| "addi t" + itostring(t) + " t" + itostring(t+1) + " t" + itostring(t);
 	}
   else {
@@ -194,17 +195,23 @@ codechain GenRight(AST *a,int t)
   }
 
   //cout<<"Starting with node \""<<a->kind<<"\""<<endl;
-  if (a->ref) {
+  
+	if (a->ref) {
     if (a->kind=="ident" && symboltable.jumped_scopes(a->text)==0 &&
-	isbasickind(symboltable[a->text].tp->kind) && symboltable[a->text].kind!="idparref") {
-	c="load _"+a->text+" t"+itostring(t);		//és una local var
+			isbasickind(symboltable[a->text].tp->kind) && symboltable[a->text].kind!="idparref") {
+				c="load _"+a->text+" t"+itostring(t);		//és una local var
     }
     else if (isbasickind(a->tp->kind)) {	//parval of array/struct, or parref
       c=GenLeft(a,t)||"load t"+itostring(t)+" t"+itostring(t);
     }
     else {		//local var or local parval of basic type/pointer
+			c = GenLeft(a, t + 1);
+			c = c || "aload aux_space t" + itostring(t);
+			c = c || "addi t" + itostring(t) + " " + itostring(offsetauxspace) + " t" + itostring(t);
+			c = c || "copy t" + itostring(t + 1) + " t" + itostring(t) + " " + itostring(a->tp->size);
+			offsetauxspace += a->tp->size;
     }    
-  } 
+  }
   else if (a->kind=="intconst") c="iload "+a->text+" t"+itostring(t);
 	else if (a->kind=="true") c="iload 1 t"+itostring(t);
 	else if (a->kind=="false") c="iload 0 t"+itostring(t);
@@ -259,6 +266,11 @@ codechain GenRight(AST *a,int t)
 		c=GenRight(child(a,0),t)
 		|| "lnot t"+itostring(t)+" t"+itostring(t);		
 	}
+	else if (a->kind=="or") {
+		c = GenRight(child(a,0),t)
+		|| GenRight(child(a,1),t+1)
+		|| "loor t" + itostring(t) + " t" + itostring(t+1) + " t" + itostring(t);
+	}
 	else if (a->kind=="(") {
 		// Return value type = isbasickind?
 		if (isbasickind(symboltable[child(a,0)->text].tp->right->kind))
@@ -281,6 +293,13 @@ codechain GenRight(AST *a,int t)
 		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
 		c = c || killpars;
 	}
+	/*else if(!a->ref)
+	{
+		c = GenRight(child(a, 0), t);
+		c = c || "addi t"+itostring(t) + " " + itostring(child(a, 0)->tp->offset[child(a, 1)->text]) + " t" + itostring(t);			
+		if (isbasickind(a->tp->kind))
+			c = c || "load t" + itostring(t) + " t" + itostring(t);
+	}*/
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
@@ -292,7 +311,7 @@ codechain GenRight(AST *a,int t)
 codechain CodeGenInstruction(AST *a,string info="")
 {
   codechain c, pushpars, killpars;
-
+	offsetauxspace=0;
 
   if (!a) {
     return c;
@@ -311,7 +330,7 @@ codechain CodeGenInstruction(AST *a,string info="")
     else if (child(a,1)->ref) {
       c=GenLeft(child(a,0),0)||GenLeft(child(a,1),1)||"copy t1 t0 "+itostring(child(a,1)->tp->size);
     }
-    else {
+    else { //No es basic ni referenciable
       c=GenLeft(child(a,0),0)||GenRight(child(a,1),1)||"copy t1 t0 "+itostring(child(a,1)->tp->size);
     }
   } 
@@ -361,6 +380,10 @@ codechain CodeGenInstruction(AST *a,string info="")
 		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
 		c = c || killpars;
 	}
+	
+	// Actualitzo el Màxim auxspace
+	if (offsetauxspace > maxoffsetauxspace) maxoffsetauxspace = offsetauxspace;
+	
   //cout<<"Ending with node \""<<a->kind<<"\""<<endl;
 //	cout << a->kind << endl;
   return c;
