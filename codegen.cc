@@ -293,13 +293,13 @@ codechain GenRight(AST *a,int t)
 		c = c || "call " + symboltable.idtable(child(a, 0)->text) + "_" + child(a, 0)->text;
 		c = c || killpars;
 	}
-	/*else if(!a->ref)
+	else if(!a->ref)
 	{
 		c = GenRight(child(a, 0), t);
 		c = c || "addi t"+itostring(t) + " " + itostring(child(a, 0)->tp->offset[child(a, 1)->text]) + " t" + itostring(t);			
 		if (isbasickind(a->tp->kind))
 			c = c || "load t" + itostring(t) + " t" + itostring(t);
-	}*/
+	}
   else {
     cout<<"BIG PROBLEM! No case defined for kind "<<a->kind<<endl;
   }
